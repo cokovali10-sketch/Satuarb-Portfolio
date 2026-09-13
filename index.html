@@ -1,0 +1,2556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GlassForge — Satuarb | Systems Programmer & Security Engineer</title>
+  <meta name="description" content="15-year-old systems programmer building security tools and AI agents. Portfolio of Satuarb from Kazakhstan.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9670;</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #0f0f18;
+      --bg-glass: rgba(255, 255, 255, 0.03);
+      --bg-glass-hover: rgba(255, 255, 255, 0.06);
+      --bg-glass-strong: rgba(255, 255, 255, 0.08);
+      --border-glass: rgba(255, 255, 255, 0.08);
+      --border-glass-hover: rgba(255, 255, 255, 0.15);
+      --fg-primary: #ffffff;
+      --fg-secondary: rgba(255, 255, 255, 0.6);
+      --fg-tertiary: rgba(255, 255, 255, 0.4);
+      --accent-1: #00ff88;
+      --accent-2: #7b61ff;
+      --accent-3: #00d4ff;
+      --accent-gradient: linear-gradient(135deg, #00ff88, #00d4ff);
+      --glass-blur: blur(20px);
+      --glass-blur-heavy: blur(40px);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --radius-xs: 6px;
+      --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+      --shadow-glow: 0 0 40px rgba(0, 255, 136, 0.1);
+      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-slow: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 255, 136, 0.3) transparent;
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 255, 136, 0.3); border-radius: 3px; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--fg-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ─── AMBIENT BACKGROUND ─── */
+    .ambient-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .ambient-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.15;
+      animation: orbFloat 20s ease-in-out infinite;
+    }
+
+    .ambient-orb:nth-child(1) {
+      width: 600px; height: 600px;
+      background: var(--accent-1);
+      top: -200px; left: -100px;
+      animation-delay: 0s;
+    }
+
+    .ambient-orb:nth-child(2) {
+      width: 500px; height: 500px;
+      background: var(--accent-2);
+      top: 50%; right: -150px;
+      animation-delay: -7s;
+      animation-duration: 25s;
+    }
+
+    .ambient-orb:nth-child(3) {
+      width: 400px; height: 400px;
+      background: var(--accent-3);
+      bottom: -100px; left: 30%;
+      animation-delay: -14s;
+      animation-duration: 22s;
+    }
+
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(50px, -30px) scale(1.1); }
+      50% { transform: translate(-20px, 40px) scale(0.95); }
+      75% { transform: translate(30px, 20px) scale(1.05); }
+    }
+
+    /* ─── NAVIGATION ─── */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(10, 10, 15, 0.7);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-bottom: 1px solid var(--border-glass);
+      transition: var(--transition);
+    }
+
+    .nav.scrolled {
+      padding: 12px 32px;
+      background: rgba(10, 10, 15, 0.9);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--fg-primary);
+    }
+
+    .nav-logo-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent-gradient);
+      border-radius: var(--radius-xs);
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--bg-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .nav-logo-text {
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--fg-secondary);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: var(--radius-xs);
+      transition: var(--transition);
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--fg-primary);
+      background: var(--bg-glass-hover);
+    }
+
+    .nav-links a.active {
+      color: var(--accent-1);
+    }
+
+    .nav-mobile-toggle {
+      display: none;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      color: var(--fg-primary);
+      font-size: 20px;
+      padding: 8px 12px;
+      border-radius: var(--radius-xs);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .nav-mobile-toggle:hover {
+      background: var(--bg-glass-hover);
+      border-color: var(--border-glass-hover);
+    }
+
+    /* ─── HERO SECTION ─── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 32px 80px;
+      overflow: hidden;
+    }
+
+    #three-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: 50px;
+      font-size: 13px;
+      color: var(--fg-secondary);
+      margin-bottom: 32px;
+      backdrop-filter: var(--glass-blur);
+    }
+
+    .hero-badge .dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent-1);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .hero-ascii {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      line-height: 1.3;
+      color: var(--fg-tertiary);
+      margin-bottom: 24px;
+      opacity: 0.6;
+      white-space: pre;
+      display: none;
+    }
+
+    @media (min-width: 768px) {
+      .hero-ascii { display: block; }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 .accent {
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-tagline {
+      font-size: clamp(1rem, 2vw, 1.15rem);
+      color: var(--fg-secondary);
+      max-width: 600px;
+      margin: 0 auto 48px;
+      line-height: 1.8;
+    }
+
+    .hero-tagline strong {
+      color: var(--fg-primary);
+      font-weight: 600;
+    }
+
+    /* Hero Stats */
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      margin-bottom: 48px;
+    }
+
+    .hero-stat {
+      text-align: center;
+    }
+
+    .hero-stat-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .hero-stat-label {
+      font-size: 13px;
+      color: var(--fg-tertiary);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Hero Buttons */
+    .hero-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: var(--transition);
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--accent-gradient);
+      color: var(--bg-primary);
+      box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 255, 136, 0.4);
+    }
+
+    .btn-ghost {
+      background: var(--bg-glass);
+      color: var(--fg-primary);
+      border: 1px solid var(--border-glass);
+      backdrop-filter: var(--glass-blur);
+    }
+
+    .btn-ghost:hover {
+      background: var(--bg-glass-hover);
+      border-color: var(--border-glass-hover);
+      transform: translateY(-2px);
+    }
+
+    /* ─── SECTION SHARED ─── */
+    .section {
+      padding: 120px 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--accent-1);
+      margin-bottom: 12px;
+      letter-spacing: 2px;
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      margin-bottom: 16px;
+    }
+
+    .section-desc {
+      color: var(--fg-secondary);
+      font-size: 1.05rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ─── ABOUT SECTION ─── */
+    .about-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+
+    .about-bio {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius);
+      padding: 36px;
+      backdrop-filter: var(--glass-blur);
+      box-shadow: var(--shadow-glass);
+    }
+
+    .about-bio h3 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--fg-primary);
+    }
+
+    .about-bio p {
+      color: var(--fg-secondary);
+      font-size: 0.95rem;
+      line-height: 1.8;
+      margin-bottom: 12px;
+    }
+
+    .about-bio .highlight {
+      color: var(--accent-1);
+      font-weight: 600;
+    }
+
+    .skills-grid-about {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .skill-card-about {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      backdrop-filter: var(--glass-blur);
+      transition: var(--transition);
+      cursor: default;
+    }
+
+    .skill-card-about:hover {
+      border-color: var(--border-glass-hover);
+      background: var(--bg-glass-hover);
+      transform: translateY(-2px);
+    }
+
+    .skill-card-about .skill-icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .skill-card-about .skill-name {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .skill-card-about .skill-level {
+      font-size: 12px;
+      color: var(--accent-1);
+      font-weight: 500;
+    }
+
+    /* ─── PROJECTS SECTION ─── */
+    .filter-bar {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 48px;
+      flex-wrap: wrap;
+      padding: 6px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: 50px;
+      backdrop-filter: var(--glass-blur);
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .filter-btn {
+      padding: 10px 20px;
+      border: none;
+      background: transparent;
+      color: var(--fg-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: inherit;
+    }
+
+    .filter-btn:hover {
+      color: var(--fg-primary);
+      background: var(--bg-glass-hover);
+    }
+
+    .filter-btn.active {
+      background: var(--accent-gradient);
+      color: var(--bg-primary);
+      font-weight: 600;
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 24px;
+    }
+
+    .project-card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius);
+      padding: 28px;
+      backdrop-filter: var(--glass-blur);
+      box-shadow: var(--shadow-glass);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .project-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent-gradient);
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .project-card:hover {
+      border-color: var(--border-glass-hover);
+      background: var(--bg-glass-hover);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-glass), var(--shadow-glow);
+    }
+
+    .project-card:hover::before {
+      opacity: 1;
+    }
+
+    .project-card.hidden {
+      display: none;
+    }
+
+    .project-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .project-icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-glass-strong);
+      border-radius: var(--radius-xs);
+      font-weight: 700;
+      font-size: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent-1);
+    }
+
+    .project-badge {
+      padding: 4px 10px;
+      border-radius: 50px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-rust { background: rgba(222, 106, 55, 0.15); color: #de6a37; }
+    .badge-go { background: rgba(0, 173, 216, 0.15); color: #00add8; }
+    .badge-python { background: rgba(55, 118, 171, 0.15); color: #5c9cdd; }
+    .badge-cpp { background: rgba(0, 89, 156, 0.15); color: #5599e4; }
+    .badge-typescript { background: rgba(49, 120, 198, 0.15); color: #5c9ee4; }
+    .badge-web { background: rgba(0, 255, 136, 0.15); color: #00ff88; }
+    .badge-security { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .badge-ai { background: rgba(123, 97, 255, 0.15); color: #a78bfa; }
+    .badge-analytics { background: rgba(0, 212, 255, 0.15); color: #00d4ff; }
+    .badge-devops { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+    .badge-game { background: rgba(236, 72, 153, 0.15); color: #ec4899; }
+
+    .featured-badge {
+      padding: 4px 10px;
+      background: var(--accent-gradient);
+      color: var(--bg-primary);
+      border-radius: 50px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .project-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+
+    .project-desc {
+      font-size: 0.88rem;
+      color: var(--fg-secondary);
+      line-height: 1.7;
+      margin-bottom: 20px;
+      flex: 1;
+    }
+
+    .project-tech {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .tech-tag {
+      padding: 3px 10px;
+      background: var(--bg-glass-strong);
+      border: 1px solid var(--border-glass);
+      border-radius: 50px;
+      font-size: 11px;
+      color: var(--fg-secondary);
+      font-weight: 500;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .project-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-glass);
+    }
+
+    .project-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--accent-1);
+      text-decoration: none;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .project-link:hover {
+      color: var(--fg-primary);
+    }
+
+    .project-link svg {
+      width: 14px;
+      height: 14px;
+      transition: var(--transition);
+    }
+
+    .project-link:hover svg {
+      transform: translate(2px, -2px);
+    }
+
+    /* ─── STATS SECTION ─── */
+    .stats-section {
+      padding: 100px 32px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .stat-card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius);
+      padding: 40px 28px;
+      text-align: center;
+      backdrop-filter: var(--glass-blur);
+      box-shadow: var(--shadow-glass);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent-gradient);
+      transform: scaleX(0);
+      transition: var(--transition);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-glass-hover);
+    }
+
+    .stat-card:hover::after {
+      transform: scaleX(1);
+    }
+
+    .stat-number {
+      font-size: 3rem;
+      font-weight: 900;
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--fg-secondary);
+      font-weight: 500;
+    }
+
+    .stat-suffix {
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    /* ─── SKILLS SECTION ─── */
+    .skills-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .skill-item {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-sm);
+      padding: 24px;
+      backdrop-filter: var(--glass-blur);
+      transition: var(--transition);
+    }
+
+    .skill-item:hover {
+      border-color: var(--border-glass-hover);
+      background: var(--bg-glass-hover);
+    }
+
+    .skill-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .skill-item-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .skill-item-icon {
+      font-size: 24px;
+    }
+
+    .skill-item-name {
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .skill-item-pct {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent-1);
+    }
+
+    .skill-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--bg-glass-strong);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .skill-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--accent-gradient);
+      width: 0%;
+      transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ─── TIMELINE SECTION ─── */
+    .timeline {
+      position: relative;
+      max-width: 700px;
+      margin: 0 auto;
+      padding-left: 40px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, var(--accent-1), var(--accent-2), var(--accent-3));
+      opacity: 0.3;
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 48px;
+      padding-left: 24px;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -29px;
+      top: 8px;
+      width: 12px;
+      height: 12px;
+      background: var(--accent-1);
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+    }
+
+    .timeline-date {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--accent-1);
+      font-weight: 600;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+
+    .timeline-card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-sm);
+      padding: 24px;
+      backdrop-filter: var(--glass-blur);
+      transition: var(--transition);
+    }
+
+    .timeline-card:hover {
+      border-color: var(--border-glass-hover);
+      background: var(--bg-glass-hover);
+      transform: translateX(4px);
+    }
+
+    .timeline-card h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .timeline-card p {
+      font-size: 0.88rem;
+      color: var(--fg-secondary);
+      line-height: 1.7;
+    }
+
+    .timeline-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .timeline-tag {
+      padding: 3px 10px;
+      background: var(--bg-glass-strong);
+      border: 1px solid var(--border-glass);
+      border-radius: 50px;
+      font-size: 11px;
+      color: var(--fg-secondary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ─── CONTACT SECTION ─── */
+    .contact-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .contact-form {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius);
+      padding: 36px;
+      backdrop-filter: var(--glass-blur);
+      box-shadow: var(--shadow-glass);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--fg-secondary);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--bg-glass-strong);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-xs);
+      color: var(--fg-primary);
+      font-family: inherit;
+      font-size: 14px;
+      transition: var(--transition);
+      outline: none;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: var(--accent-1);
+      box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+    }
+
+    .form-group textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .form-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent-gradient);
+      color: var(--bg-primary);
+      border: none;
+      border-radius: var(--radius-xs);
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: inherit;
+    }
+
+    .form-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 255, 136, 0.3);
+    }
+
+    .contact-info {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .contact-card {
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-sm);
+      padding: 24px;
+      backdrop-filter: var(--glass-blur);
+      transition: var(--transition);
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .contact-card:hover {
+      border-color: var(--border-glass-hover);
+      background: var(--bg-glass-hover);
+      transform: translateX(4px);
+    }
+
+    .contact-card-icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-glass-strong);
+      border-radius: var(--radius-xs);
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .contact-card-label {
+      font-size: 12px;
+      color: var(--fg-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 2px;
+    }
+
+    .contact-card-value {
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    /* ─── FOOTER ─── */
+    .footer {
+      padding: 40px 32px;
+      text-align: center;
+      border-top: 1px solid var(--border-glass);
+    }
+
+    .footer-text {
+      font-size: 13px;
+      color: var(--fg-tertiary);
+    }
+
+    .footer-text .accent {
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .fade-in-delay-1 { transition-delay: 0.1s; }
+    .fade-in-delay-2 { transition-delay: 0.2s; }
+    .fade-in-delay-3 { transition-delay: 0.3s; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .about-content,
+      .contact-content {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .projects-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .skills-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .nav-links.open {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(10, 10, 15, 0.95);
+        backdrop-filter: var(--glass-blur);
+        padding: 16px;
+        border-bottom: 1px solid var(--border-glass);
+      }
+      .nav-mobile-toggle { display: block; }
+
+      .hero { padding: 100px 20px 60px; }
+      .section { padding: 80px 20px; }
+
+      .hero-stats { gap: 24px; }
+      .hero-stat-number { font-size: 1.8rem; }
+
+      .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .stat-card { padding: 28px 16px; }
+      .stat-number { font-size: 2rem; }
+
+      .filter-bar { gap: 4px; padding: 4px; }
+      .filter-btn { padding: 8px 14px; font-size: 12px; }
+
+      .skills-grid-about { grid-template-columns: 1fr; }
+    }
+
+    /* ─── GRAIN OVERLAY ─── */
+    .grain {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-bg">
+    <div class="ambient-orb"></div>
+    <div class="ambient-orb"></div>
+    <div class="ambient-orb"></div>
+  </div>
+
+  <div class="grain"></div>
+
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <a href="#hero" class="nav-logo">
+      <div class="nav-logo-icon">S</div>
+      <span class="nav-logo-text">Satuarb</span>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#about" class="active">About</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#timeline">Journey</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <button class="nav-mobile-toggle" id="navToggle" aria-label="Toggle menu">&#9776;</button>
+  </nav>
+
+  <!-- ═══════════════════════ HERO ═══════════════════════ -->
+  <section class="hero" id="hero">
+    <canvas id="three-canvas"></canvas>
+    <div class="hero-content">
+      <div class="hero-badge fade-in">
+        <span class="dot"></span>
+        <span>Available for collaborations</span>
+      </div>
+
+      <pre class="hero-ascii fade-in fade-in-delay-1">
+ _____             _              __     __
+/__  /__ _ ______ (_)____  _____/ /_   / /_  ___  ______
+ / / / _ `/ __/ / / __/ / / / _  / __/ / / / _ \/ __/ _ \
+/_/ /\_,_/_/ /_/ /\__/\_,_/ \_,_/\__/ /_/ /\___/_/ \___/
+/___/              /___/               /___/
+      </pre>
+
+      <h1 class="fade-in fade-in-delay-1">Hi, I'm <span class="accent">Satuarb</span></h1>
+
+      <p class="hero-tagline fade-in fade-in-delay-2">
+        <strong>15-year-old systems programmer</strong> building security tools and AI agents.
+        Passionate about low-level systems, eBPF, and artificial intelligence.
+        From Kazakhstan, shipping code globally.
+      </p>
+
+      <div class="hero-stats fade-in fade-in-delay-2">
+        <div class="hero-stat">
+          <div class="hero-stat-number" data-count="38">0</div>
+          <div class="hero-stat-label">Projects</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-number" data-count="6">0</div>
+          <div class="hero-stat-label">Languages</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-number" data-count="200">0</div>
+          <div class="hero-stat-label">AI Tools</div>
+        </div>
+      </div>
+
+      <div class="hero-buttons fade-in fade-in-delay-3">
+        <a href="#projects" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          View Projects
+        </a>
+        <a href="https://github.com/cokovali10-sketch" target="_blank" class="btn btn-ghost">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ ABOUT ═══════════════════════ -->
+  <section class="section" id="about">
+    <div class="section-header fade-in">
+      <div class="section-label">// about</div>
+      <h2 class="section-title">Who I Am</h2>
+      <p class="section-desc">Building the future from the ground up — one byte at a time.</p>
+    </div>
+
+    <div class="about-content">
+      <div class="about-bio fade-in">
+        <h3>Systems Programmer & Security Engineer</h3>
+        <p>
+          I'm a <span class="highlight">15-year-old self-taught programmer</span> from Kazakhstan with a deep passion for systems programming, cybersecurity, and artificial intelligence. I build tools that operate at the lowest levels — from kernel-level EDR systems to container runtimes.
+        </p>
+        <p>
+          My work spans across <span class="highlight">38 projects in 6 languages</span>, including a 12,300+ line container runtime, eBPF-based endpoint detection, encrypted vault systems, and AI agent suites with 200+ tools. I believe in building from scratch to truly understand how things work.
+        </p>
+        <p>
+          When I'm not writing code, I'm exploring new attack vectors, experimenting with AI model orchestration, or contributing to open-source projects that push the boundaries of what's possible.
+        </p>
+      </div>
+
+      <div class="skills-grid-about fade-in fade-in-delay-1">
+        <div class="skill-card-about">
+          <div class="skill-icon">&#x1F6E1;</div>
+          <div class="skill-name">Security Research</div>
+          <div class="skill-level">Advanced</div>
+        </div>
+        <div class="skill-card-about">
+          <div class="skill-icon">&#x1F916;</div>
+          <div class="skill-name">AI / ML</div>
+          <div class="skill-level">Advanced</div>
+        </div>
+        <div class="skill-card-about">
+          <div class="skill-icon">&#x2699;</div>
+          <div class="skill-name">Systems Programming</div>
+          <div class="skill-level">Expert</div>
+        </div>
+        <div class="skill-card-about">
+          <div class="skill-icon">&#x1F4E6;</div>
+          <div class="skill-name">DevOps / Containers</div>
+          <div class="skill-level">Advanced</div>
+        </div>
+        <div class="skill-card-about">
+          <div class="skill-icon">&#x1F5A5;</div>
+          <div class="skill-name">Linux Internals</div>
+          <div class="skill-level">Advanced</div>
+        </div>
+        <div class="skill-card-about">
+          <div class="skill-icon">&#x1F3AE;</div>
+          <div class="skill-name">Game Development</div>
+          <div class="skill-level">Proficient</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ PROJECTS ═══════════════════════ -->
+  <section class="section" id="projects">
+    <div class="section-header fade-in">
+      <div class="section-label">// projects</div>
+      <h2 class="section-title">Things I've Built</h2>
+      <p class="section-desc">38 projects across 6 languages — AI agents, security tools, analytics platforms, games, and more.</p>
+    </div>
+
+    <div class="filter-bar fade-in fade-in-delay-1">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="security">Cyber Security</button>
+      <button class="filter-btn" data-filter="ai">AI/ML</button>
+      <button class="filter-btn" data-filter="analytics">Analytics</button>
+      <button class="filter-btn" data-filter="devops">DevOps</button>
+      <button class="filter-btn" data-filter="game">Games</button>
+      <button class="filter-btn" data-filter="web">Web</button>
+    </div>
+
+    <div class="projects-grid" id="projectsGrid">
+
+      <!-- ═══ FEATURED: THREATFORGE ═══ -->
+      <div class="project-card fade-in featured" data-category="security" data-lang="rust">
+        <div class="project-card-header">
+          <div class="project-icon">T</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="project-badge badge-security">Security</span>
+            <span class="featured-badge">FEATURED</span>
+          </div>
+        </div>
+        <div class="project-name">ThreatForge</div>
+        <div class="project-desc">Advanced threat simulation and red team framework. Generates realistic attack patterns for testing EDR systems and security defenses.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Rust</span>
+          <span class="tech-tag">eBPF</span>
+          <span class="tech-tag">Linux</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/ThreatForge" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ FEATURED: GHOSTLY ═══ -->
+      <div class="project-card fade-in featured" data-category="analytics" data-lang="python">
+        <div class="project-card-header">
+          <div class="project-icon">G</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="project-badge badge-analytics">Analytics</span>
+            <span class="featured-badge">FEATURED</span>
+          </div>
+        </div>
+        <div class="project-name">Ghostly</div>
+        <div class="project-desc">Privacy-first analytics platform. 12,760 lines, 150+ API endpoints, multi-tenant, real-time WebSocket, A/B testing, heatmaps, funnels, Docker, PWA. EXE build.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">FastAPI</span>
+          <span class="tech-tag">WebSocket</span>
+          <span class="tech-tag">Docker</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/Ghostly" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ FEATURED: HERMES STUDIO ═══ -->
+      <div class="project-card fade-in featured" data-category="ai" data-lang="python">
+        <div class="project-card-header">
+          <div class="project-icon">H</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="project-badge badge-ai">AI/ML</span>
+            <span class="featured-badge">FEATURED</span>
+          </div>
+        </div>
+        <div class="project-name">Hermes Studio</div>
+        <div class="project-desc">AI agentic tool suite with 202 tools across 22 categories. Smart routing, multi-agent workflows, code execution, monitoring, security, database, cloud, DevOps. Fully offline with Ollama.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">Ollama</span>
+          <span class="tech-tag">FastAPI</span>
+          <span class="tech-tag">React</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/hermes-studio" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ COREEDR ═══ -->
+      <div class="project-card fade-in" data-category="security" data-lang="rust">
+        <div class="project-card-header">
+          <div class="project-icon">E</div>
+          <span class="project-badge badge-security">Security</span>
+        </div>
+        <div class="project-name">CoreEDR</div>
+        <div class="project-desc">Endpoint Detection & Response / Antivirus engine built in Rust. Real-time process monitoring, threat detection, and automated response for Windows systems.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Rust</span>
+          <span class="tech-tag">Windows API</span>
+          <span class="tech-tag">EDR</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/CoreEDR" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ SPECTRESHIELD ═══ -->
+      <div class="project-card fade-in" data-category="security" data-lang="rust">
+        <div class="project-card-header">
+          <div class="project-icon">S</div>
+          <span class="project-badge badge-security">Security</span>
+        </div>
+        <div class="project-name">SpectreShield</div>
+        <div class="project-desc">eBPF-based EDR system. Kernel-level visibility into process execution, file access, and network activity using extended BPF probes.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Rust</span>
+          <span class="tech-tag">eBPF</span>
+          <span class="tech-tag">Linux Kernel</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/SpectreShield" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ NANOCONTAINER ═══ -->
+      <div class="project-card fade-in" data-category="devops" data-lang="go">
+        <div class="project-card-header">
+          <div class="project-icon">N</div>
+          <span class="project-badge badge-devops">DevOps</span>
+        </div>
+        <div class="project-name">NanoContainer</div>
+        <div class="project-desc">12,300+ line container runtime in Go. Implements Linux namespaces, cgroups, and filesystem isolation — a from-scratch Docker alternative.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Go</span>
+          <span class="tech-tag">Linux</span>
+          <span class="tech-tag">Namespaces</span>
+          <span class="tech-tag">cgroups</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/NanoContainer" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ AEGISRUNTIME ═══ -->
+      <div class="project-card fade-in" data-category="ai" data-lang="python">
+        <div class="project-card-header">
+          <div class="project-icon">A</div>
+          <span class="project-badge badge-ai">AI/ML</span>
+        </div>
+        <div class="project-name">AegisRuntime</div>
+        <div class="project-desc">AI model runtime with sandboxed execution environments. Manages model loading, inference pipelines, and resource allocation for edge deployment.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">ONNX</span>
+          <span class="tech-tag">Docker</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/AegisRuntime" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ GOVAULT ═══ -->
+      <div class="project-card fade-in" data-category="security" data-lang="go">
+        <div class="project-card-header">
+          <div class="project-icon">V</div>
+          <span class="project-badge badge-security">Security</span>
+        </div>
+        <div class="project-name">GoVault</div>
+        <div class="project-desc">Encrypted file storage system with AES-256-GCM. Provides secure file encryption, key derivation, and integrity verification.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Go</span>
+          <span class="tech-tag">AES-256</span>
+          <span class="tech-tag">Cryptography</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/GoVault" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ GOPORTSCAN ═══ -->
+      <div class="project-card fade-in" data-category="security" data-lang="go">
+        <div class="project-card-header">
+          <div class="project-icon">G</div>
+          <span class="project-badge badge-security">Security</span>
+        </div>
+        <div class="project-name">GoPortScan</div>
+        <div class="project-desc">Fast concurrent port scanner with goroutine-powered scanning. Discovers open ports, identifies services, and outputs results in multiple formats.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Go</span>
+          <span class="tech-tag">Goroutines</span>
+          <span class="tech-tag">Networking</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/GoPortScan" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ RETROTERM ═══ -->
+      <div class="project-card fade-in" data-category="game" data-lang="cpp">
+        <div class="project-card-header">
+          <div class="project-icon">R</div>
+          <span class="project-badge badge-game">Game</span>
+        </div>
+        <div class="project-name">RetroTerm</div>
+        <div class="project-desc">Terminal-based roguelike game. Procedural dungeon generation, turn-based combat, inventory system, and ASCII rendering engine.</div>
+        <div class="project-tech">
+          <span class="tech-tag">C++</span>
+          <span class="tech-tag">ncurses</span>
+          <span class="tech-tag">Procedural Gen</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/RetroTerm" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ DISKSCOPE ═══ -->
+      <div class="project-card fade-in" data-category="security" data-lang="cpp">
+        <div class="project-card-header">
+          <div class="project-icon">D</div>
+          <span class="project-badge badge-security">Security</span>
+        </div>
+        <div class="project-name">DiskScope</div>
+        <div class="project-desc">Low-level disk analyzer and sector inspector. Reads raw disk sectors, analyzes partition tables, and visualizes disk structure at the byte level.</div>
+        <div class="project-tech">
+          <span class="tech-tag">C++</span>
+          <span class="tech-tag">Raw I/O</span>
+          <span class="tech-tag">Forensics</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/DiskScope" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ LOGPULSE ═══ -->
+      <div class="project-card fade-in" data-category="analytics" data-lang="python">
+        <div class="project-card-header">
+          <div class="project-icon">L</div>
+          <span class="project-badge badge-analytics">Analytics</span>
+        </div>
+        <div class="project-name">LogPulse</div>
+        <div class="project-desc">Intelligent log analyzer that parses, correlates, and summarizes log files. Detects anomalies and provides actionable insights from structured and unstructured logs.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">Regex</span>
+          <span class="tech-tag">NLP</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/LogPulse" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ JOBSCOUT ═══ -->
+      <div class="project-card fade-in" data-category="analytics" data-lang="python">
+        <div class="project-card-header">
+          <div class="project-icon">J</div>
+          <span class="project-badge badge-analytics">Analytics</span>
+        </div>
+        <div class="project-name">JobScout</div>
+        <div class="project-desc">Automated job data collector and aggregator. Scrapes job boards, normalizes listings, and provides filtering and search capabilities.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">Scrapy</span>
+          <span class="tech-tag">SQLite</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/JobScout" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ EXPRESSPULSEAPI ═══ -->
+      <div class="project-card fade-in" data-category="web" data-lang="typescript">
+        <div class="project-card-header">
+          <div class="project-icon">E</div>
+          <span class="project-badge badge-typescript">TypeScript</span>
+        </div>
+        <div class="project-name">ExpressPulseAPI</div>
+        <div class="project-desc">Real-time API monitoring dashboard. Health checks, latency tracking, error rate analysis, and alerting for Express.js applications.</div>
+        <div class="project-tech">
+          <span class="tech-tag">TypeScript</span>
+          <span class="tech-tag">Express</span>
+          <span class="tech-tag">WebSocket</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/ExpressPulseAPI" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ FASTDUPFINDER ═══ -->
+      <div class="project-card fade-in" data-category="devops" data-lang="rust">
+        <div class="project-card-header">
+          <div class="project-icon">F</div>
+          <span class="project-badge badge-devops">DevOps</span>
+        </div>
+        <div class="project-name">FastDupFinder</div>
+        <div class="project-desc">High-performance duplicate file finder. Uses content hashing and parallel scanning to identify duplicates across large directory trees at lightning speed.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Rust</span>
+          <span class="tech-tag">Parallel</span>
+          <span class="tech-tag">SHA-256</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/FastDupFinder" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ PROXYLOG ═══ -->
+      <div class="project-card fade-in" data-category="security" data-lang="rust">
+        <div class="project-card-header">
+          <div class="project-icon">P</div>
+          <span class="project-badge badge-security">Security</span>
+        </div>
+        <div class="project-name">ProxyLog</div>
+        <div class="project-desc">HTTP proxy with full request/response logging. Intercepts, inspects, and logs all HTTP traffic for debugging and security analysis.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Rust</span>
+          <span class="tech-tag">HTTP</span>
+          <span class="tech-tag">TLS</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/ProxyLog" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ AGENTMESH ═══ -->
+      <div class="project-card fade-in" data-category="ai" data-lang="python">
+        <div class="project-card-header">
+          <div class="project-icon">A</div>
+          <span class="project-badge badge-ai">AI/ML</span>
+        </div>
+        <div class="project-name">AgentMesh</div>
+        <div class="project-desc">Multi-agent orchestration framework. Enables agent-to-agent communication, task delegation, and distributed problem solving across specialized AI agents.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">LangChain</span>
+          <span class="tech-tag">gRPC</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/AgentMesh" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ AEGISSTORM ═══ -->
+      <div class="project-card fade-in" data-category="ai" data-lang="python">
+        <div class="project-card-header">
+          <div class="project-icon">S</div>
+          <span class="project-badge badge-ai">AI/ML</span>
+        </div>
+        <div class="project-name">AegisStorm</div>
+        <div class="project-desc">AI-powered security analysis tool. Uses machine learning to detect anomalies in network traffic and system behavior patterns.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">TensorFlow</span>
+          <span class="tech-tag">Scapy</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/AegisStorm" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ AEGISX ═══ -->
+      <div class="project-card fade-in" data-category="security" data-lang="python">
+        <div class="project-card-header">
+          <div class="project-icon">X</div>
+          <span class="project-badge badge-security">Security</span>
+        </div>
+        <div class="project-name">AegisX-</div>
+        <div class="project-desc">Extended security toolkit with vulnerability scanning, password auditing, and network reconnaissance capabilities in a unified CLI.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">Nmap</span>
+          <span class="tech-tag">Hydra</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/AegisX-" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ MOCKPULSE ═══ -->
+      <div class="project-card fade-in" data-category="devops" data-lang="python">
+        <div class="project-card-header">
+          <div class="project-icon">M</div>
+          <span class="project-badge badge-devops">DevOps</span>
+        </div>
+        <div class="project-name">Mockpulse</div>
+        <div class="project-desc">API mocking server for testing microservices. Generates realistic mock responses, records real traffic, and simulates failure scenarios.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">FastAPI</span>
+          <span class="tech-tag">YAML</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/Mockpulse" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ GLASSPARSE-AI ═══ -->
+      <div class="project-card fade-in" data-category="ai" data-lang="python">
+        <div class="project-card-header">
+          <div class="project-icon">G</div>
+          <span class="project-badge badge-ai">AI/ML</span>
+        </div>
+        <div class="project-name">glassparse-ai</div>
+        <div class="project-desc">AI-powered code analysis and documentation generator. Parses codebases, understands architecture, and generates comprehensive documentation automatically.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">AST</span>
+          <span class="tech-tag">GPT</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/glassparse-ai" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ FORGE3D ═══ -->
+      <div class="project-card fade-in" data-category="game" data-lang="cpp">
+        <div class="project-card-header">
+          <div class="project-icon">3</div>
+          <span class="project-badge badge-game">Game</span>
+        </div>
+        <div class="project-name">Forge3D</div>
+        <div class="project-desc">Custom 3D rendering engine. Implements OpenGL pipelines, shader programs, mesh loading, lighting, and camera systems from scratch.</div>
+        <div class="project-tech">
+          <span class="tech-tag">C++</span>
+          <span class="tech-tag">OpenGL</span>
+          <span class="tech-tag">GLSL</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/Forge3D" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ FORGEENGINE ═══ -->
+      <div class="project-card fade-in" data-category="game" data-lang="cpp">
+        <div class="project-card-header">
+          <div class="project-icon">F</div>
+          <span class="project-badge badge-game">Game</span>
+        </div>
+        <div class="project-name">ForgeEngine</div>
+        <div class="project-desc">2D game engine with ECS architecture. Sprite rendering, tilemap support, physics, input handling, and a scene management system.</div>
+        <div class="project-tech">
+          <span class="tech-tag">C++</span>
+          <span class="tech-tag">SDL2</span>
+          <span class="tech-tag">ECS</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/ForgeEngine" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ CAFFEINE-GLASS-UI ═══ -->
+      <div class="project-card fade-in" data-category="web" data-lang="typescript">
+        <div class="project-card-header">
+          <div class="project-icon">C</div>
+          <span class="project-badge badge-web">Web</span>
+        </div>
+        <div class="project-name">caffeine-glass-ui</div>
+        <div class="project-desc">Glassmorphism UI component library. Reusable React components with frosted glass effects, smooth animations, and dark mode support.</div>
+        <div class="project-tech">
+          <span class="tech-tag">TypeScript</span>
+          <span class="tech-tag">React</span>
+          <span class="tech-tag">CSS</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/caffeine-glass-ui" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ WEBCRAFT ═══ -->
+      <div class="project-card fade-in" data-category="web" data-lang="web">
+        <div class="project-card-header">
+          <div class="project-icon">W</div>
+          <span class="project-badge badge-web">Web</span>
+        </div>
+        <div class="project-name">webcraft</div>
+        <div class="project-desc">Visual web builder with drag-and-drop interface. Generates clean HTML/CSS from visual layouts with real-time preview and code export.</div>
+        <div class="project-tech">
+          <span class="tech-tag">HTML</span>
+          <span class="tech-tag">CSS</span>
+          <span class="tech-tag">JavaScript</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/webcraft" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ MARKETSIGNAL ═══ -->
+      <div class="project-card fade-in" data-category="analytics" data-lang="python">
+        <div class="project-card-header">
+          <div class="project-icon">M</div>
+          <span class="project-badge badge-analytics">Analytics</span>
+        </div>
+        <div class="project-name">MarketSignal</div>
+        <div class="project-desc">Financial market signal generator. Analyzes price movements, volume patterns, and technical indicators to generate trading signals.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">Pandas</span>
+          <span class="tech-tag">TA-Lib</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/MarketSignal" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ HABIT-TRACKER ═══ -->
+      <div class="project-card fade-in" data-category="web" data-lang="typescript">
+        <div class="project-card-header">
+          <div class="project-icon">H</div>
+          <span class="project-badge badge-web">Web</span>
+        </div>
+        <div class="project-name">habit-tracker</div>
+        <div class="project-desc">Personal habit tracking web app with streaks, analytics, reminders, and motivational insights. Built with a clean, minimal interface.</div>
+        <div class="project-tech">
+          <span class="tech-tag">TypeScript</span>
+          <span class="tech-tag">Node.js</span>
+          <span class="tech-tag">SQLite</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/habit-tracker" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ AI-TREND-TRACKER ═══ -->
+      <div class="project-card fade-in" data-category="ai" data-lang="python">
+        <div class="project-card-header">
+          <div class="project-icon">T</div>
+          <span class="project-badge badge-ai">AI/ML</span>
+        </div>
+        <div class="project-name">ai-trend-tracker</div>
+        <div class="project-desc">AI news aggregator and trend tracker. Monitors sources for the latest AI developments, categorizes articles, and surfaces emerging trends.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">NLP</span>
+          <span class="tech-tag">RSS</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/ai-trend-tracker" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ TELEGRAM-BOOKING-BOT ═══ -->
+      <div class="project-card fade-in" data-category="web" data-lang="python">
+        <div class="project-card-header">
+          <div class="project-icon">B</div>
+          <span class="project-badge badge-web">Web</span>
+        </div>
+        <div class="project-name">telegram-booking-bot</div>
+        <div class="project-desc">Telegram bot for appointment scheduling and booking management. Calendar integration, reminders, and admin panel for managing slots.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">Telethon</span>
+          <span class="tech-tag">SQLite</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/telegram-booking-bot" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ DISCORDBOTAL ═══ -->
+      <div class="project-card fade-in" data-category="web" data-lang="python">
+        <div class="project-card-header">
+          <div class="project-icon">D</div>
+          <span class="project-badge badge-web">Web</span>
+        </div>
+        <div class="project-name">DiscordBotAL</div>
+        <div class="project-desc">Multi-purpose Discord bot with moderation, music, games, and utility commands. Custom prefix system and plugin architecture.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">discord.py</span>
+          <span class="tech-tag">FFmpeg</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/DiscordBotAL" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ WORLDSCANNER ═══ -->
+      <div class="project-card fade-in" data-category="security" data-lang="python">
+        <div class="project-card-header">
+          <div class="project-icon">W</div>
+          <span class="project-badge badge-security">Security</span>
+        </div>
+        <div class="project-name">WorldScanner</div>
+        <div class="project-desc">Global network reconnaissance tool. Maps internet infrastructure, identifies vulnerable devices, and generates geographic threat intelligence reports.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">Shodan</span>
+          <span class="tech-tag">GeoIP</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/WorldScanner" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ FLASHCARD-MCP ═══ -->
+      <div class="project-card fade-in" data-category="ai" data-lang="python">
+        <div class="project-card-header">
+          <div class="project-icon">F</div>
+          <span class="project-badge badge-ai">AI/ML</span>
+        </div>
+        <div class="project-name">flashcard-mcp</div>
+        <div class="project-desc">MCP-powered flashcard generation tool. Uses AI to create study materials from any document, with spaced repetition scheduling.</div>
+        <div class="project-tech">
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">MCP</span>
+          <span class="tech-tag">GPT</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/flashcard-mcp" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══ DENTALPRO ═══ -->
+      <div class="project-card fade-in" data-category="web" data-lang="web">
+        <div class="project-card-header">
+          <div class="project-icon">D</div>
+          <span class="project-badge badge-web">Web</span>
+        </div>
+        <div class="project-name">DentalPro</div>
+        <div class="project-desc">Dental clinic management platform. Patient records, appointment scheduling, treatment planning, and invoice generation in one system.</div>
+        <div class="project-tech">
+          <span class="tech-tag">HTML</span>
+          <span class="tech-tag">CSS</span>
+          <span class="tech-tag">JavaScript</span>
+        </div>
+        <div class="project-footer">
+          <a href="https://github.com/cokovali10-sketch/DentalPro" target="_blank" class="project-link">
+            View on GitHub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ STATS ═══════════════════════ -->
+  <section class="stats-section" id="stats">
+    <div class="section-header fade-in">
+      <div class="section-label">// stats</div>
+      <h2 class="section-title">By the Numbers</h2>
+      <p class="section-desc">A snapshot of what I've been building.</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card fade-in">
+        <div class="stat-number" data-count="38">0</div>
+        <div class="stat-label">Projects Built</div>
+      </div>
+      <div class="stat-card fade-in fade-in-delay-1">
+        <div class="stat-number" data-count="6">0</div>
+        <div class="stat-label">Languages</div>
+      </div>
+      <div class="stat-card fade-in fade-in-delay-2">
+        <div class="stat-number" data-count="200" data-suffix="+">0</div>
+        <div class="stat-label">AI Tools</div>
+      </div>
+      <div class="stat-card fade-in fade-in-delay-3">
+        <div class="stat-number" data-count="100" data-suffix="K+">0</div>
+        <div class="stat-label">Lines of Code</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ SKILLS ═══════════════════════ -->
+  <section class="section" id="skills">
+    <div class="section-header fade-in">
+      <div class="section-label">// skills</div>
+      <h2 class="section-title">Technical Skills</h2>
+      <p class="section-desc">Proficiency across languages, frameworks, and systems.</p>
+    </div>
+
+    <div class="skills-list">
+      <div class="skill-item fade-in">
+        <div class="skill-item-header">
+          <div class="skill-item-left">
+            <span class="skill-item-icon">&#x1F40D;</span>
+            <span class="skill-item-name">Python</span>
+          </div>
+          <span class="skill-item-pct">92%</span>
+        </div>
+        <div class="skill-bar"><div class="skill-bar-fill" data-width="92%"></div></div>
+      </div>
+
+      <div class="skill-item fade-in fade-in-delay-1">
+        <div class="skill-item-header">
+          <div class="skill-item-left">
+            <span class="skill-item-icon">&#x1F439;</span>
+            <span class="skill-item-name">Go</span>
+          </div>
+          <span class="skill-item-pct">85%</span>
+        </div>
+        <div class="skill-bar"><div class="skill-bar-fill" data-width="85%"></div></div>
+      </div>
+
+      <div class="skill-item fade-in fade-in-delay-2">
+        <div class="skill-item-header">
+          <div class="skill-item-left">
+            <span class="skill-item-icon">&#x1F980;</span>
+            <span class="skill-item-name">Rust</span>
+          </div>
+          <span class="skill-item-pct">90%</span>
+        </div>
+        <div class="skill-bar"><div class="skill-bar-fill" data-width="90%"></div></div>
+      </div>
+
+      <div class="skill-item fade-in fade-in-delay-3">
+        <div class="skill-item-header">
+          <div class="skill-item-left">
+            <span class="skill-item-icon">&#x2699;</span>
+            <span class="skill-item-name">C++</span>
+          </div>
+          <span class="skill-item-pct">80%</span>
+        </div>
+        <div class="skill-bar"><div class="skill-bar-fill" data-width="80%"></div></div>
+      </div>
+
+      <div class="skill-item fade-in">
+        <div class="skill-item-header">
+          <div class="skill-item-left">
+            <span class="skill-item-icon">&#x1F4D6;</span>
+            <span class="skill-item-name">TypeScript</span>
+          </div>
+          <span class="skill-item-pct">75%</span>
+        </div>
+        <div class="skill-bar"><div class="skill-bar-fill" data-width="75%"></div></div>
+      </div>
+
+      <div class="skill-item fade-in fade-in-delay-1">
+        <div class="skill-item-header">
+          <div class="skill-item-left">
+            <span class="skill-item-icon">&#x2615;</span>
+            <span class="skill-item-name">Java</span>
+          </div>
+          <span class="skill-item-pct">65%</span>
+        </div>
+        <div class="skill-bar"><div class="skill-bar-fill" data-width="65%"></div></div>
+      </div>
+
+      <div class="skill-item fade-in fade-in-delay-2">
+        <div class="skill-item-header">
+          <div class="skill-item-left">
+            <span class="skill-item-icon">&#x1F4E6;</span>
+            <span class="skill-item-name">Docker</span>
+          </div>
+          <span class="skill-item-pct">82%</span>
+        </div>
+        <div class="skill-bar"><div class="skill-bar-fill" data-width="82%"></div></div>
+      </div>
+
+      <div class="skill-item fade-in fade-in-delay-3">
+        <div class="skill-item-header">
+          <div class="skill-item-left">
+            <span class="skill-item-icon">&#x1F427;</span>
+            <span class="skill-item-name">Linux</span>
+          </div>
+          <span class="skill-item-pct">88%</span>
+        </div>
+        <div class="skill-bar"><div class="skill-bar-fill" data-width="88%"></div></div>
+      </div>
+
+      <div class="skill-item fade-in">
+        <div class="skill-item-header">
+          <div class="skill-item-left">
+            <span class="skill-item-icon">&#x1F6E1;</span>
+            <span class="skill-item-name">Security</span>
+          </div>
+          <span class="skill-item-pct">85%</span>
+        </div>
+        <div class="skill-bar"><div class="skill-bar-fill" data-width="85%"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ TIMELINE ═══════════════════════ -->
+  <section class="section" id="timeline">
+    <div class="section-header fade-in">
+      <div class="section-label">// journey</div>
+      <h2 class="section-title">My Learning Journey</h2>
+      <p class="section-desc">A timeline of growth, from first line of code to complex systems.</p>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item fade-in">
+        <div class="timeline-date">2022 — BEGINNINGS</div>
+        <div class="timeline-card">
+          <h4>First Steps in Programming</h4>
+          <p>Started learning Python and HTML/CSS. Built simple scripts and web pages. Discovered the joy of creating things from scratch.</p>
+          <div class="timeline-tags">
+            <span class="timeline-tag">Python</span>
+            <span class="timeline-tag">HTML</span>
+            <span class="timeline-tag">CSS</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-item fade-in">
+        <div class="timeline-date">2023 — EXPLORATION</div>
+        <div class="timeline-card">
+          <h4>Deep Dive into Systems & Security</h4>
+          <p>Learned C++ and Go. Built first security tools. Explored Linux internals, networking, and encryption. Created RetroTerm and early EDR prototypes.</p>
+          <div class="timeline-tags">
+            <span class="timeline-tag">C++</span>
+            <span class="timeline-tag">Go</span>
+            <span class="timeline-tag">Security</span>
+            <span class="timeline-tag">Linux</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-item fade-in">
+        <div class="timeline-date">2023 — LEAP</div>
+        <div class="timeline-card">
+          <h4>CoreEDR & NanoContainer</h4>
+          <p>Built a full EDR system in Rust and a 12,300+ line container runtime in Go. These projects taught me systems programming at the deepest level.</p>
+          <div class="timeline-tags">
+            <span class="timeline-tag">Rust</span>
+            <span class="timeline-tag">eBPF</span>
+            <span class="timeline-tag">Containers</span>
+            <span class="timeline-tag">cgroups</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-item fade-in">
+        <div class="timeline-date">2024 — AI ERA</div>
+        <div class="timeline-card">
+          <h4>AI Agents & Analytics</h4>
+          <p>Discovered AI and LLMs. Built Hermes Studio with 202 tools, Ghostly analytics platform with 12K+ lines, and numerous AI-powered utilities.</p>
+          <div class="timeline-tags">
+            <span class="timeline-tag">Python</span>
+            <span class="timeline-tag">LLMs</span>
+            <span class="timeline-tag">FastAPI</span>
+            <span class="timeline-tag">Analytics</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-item fade-in">
+        <div class="timeline-date">2024 — EXPANSION</div>
+        <div class="timeline-card">
+          <h4>Full Stack & Game Dev</h4>
+          <p>Expanded into TypeScript/Node.js web apps, 3D rendering with Forge3D, game engines with ForgeEngine, and glassmorphism UI libraries.</p>
+          <div class="timeline-tags">
+            <span class="timeline-tag">TypeScript</span>
+            <span class="timeline-tag">OpenGL</span>
+            <span class="timeline-tag">React</span>
+            <span class="timeline-tag">Game Dev</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-item fade-in">
+        <div class="timeline-date">2025 — NOW</div>
+        <div class="timeline-card">
+          <h4>38 Projects & Counting</h4>
+          <p>Continuously pushing boundaries in security, AI, and systems programming. Contributing to open source, exploring new technologies, and building the future.</p>
+          <div class="timeline-tags">
+            <span class="timeline-tag">Open Source</span>
+            <span class="timeline-tag">eBPF</span>
+            <span class="timeline-tag">Edge AI</span>
+            <span class="timeline-tag">Cloud</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════ CONTACT ═══════════════════════ -->
+  <section class="section" id="contact">
+    <div class="section-header fade-in">
+      <div class="section-label">// contact</div>
+      <h2 class="section-title">Get In Touch</h2>
+      <p class="section-desc">I'm always open to discussing new projects, ideas, and opportunities.</p>
+    </div>
+
+    <div class="contact-content">
+      <form class="contact-form fade-in" onsubmit="event.preventDefault();">
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input type="text" id="name" placeholder="Your name" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="your@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="message">Message</label>
+          <textarea id="message" placeholder="Tell me about your project or idea..." required></textarea>
+        </div>
+        <button type="submit" class="form-submit">Send Message</button>
+      </form>
+
+      <div class="contact-info fade-in fade-in-delay-1">
+        <a href="https://github.com/cokovali10-sketch" target="_blank" class="contact-card">
+          <div class="contact-card-icon">&#x1F4BB;</div>
+          <div>
+            <div class="contact-card-label">GitHub</div>
+            <div class="contact-card-value">cokovali10-sketch</div>
+          </div>
+        </a>
+
+        <a href="mailto:cokovali10-sketch@users.noreply.github.com" class="contact-card">
+          <div class="contact-card-icon">&#x1F4E7;</div>
+          <div>
+            <div class="contact-card-label">Email</div>
+            <div class="contact-card-value">Send me a message</div>
+          </div>
+        </a>
+
+        <a href="#" class="contact-card">
+          <div class="contact-card-icon">&#x1F4CD;</div>
+          <div>
+            <div class="contact-card-label">Location</div>
+            <div class="contact-card-value">Kazakhstan</div>
+          </div>
+        </a>
+
+        <a href="#" class="contact-card">
+          <div class="contact-card-icon">&#x1F30D;</div>
+          <div>
+            <div class="contact-card-label">Status</div>
+            <div class="contact-card-value">Available for collaborations</div>
+          </div>
+        </a>
+
+        <pre class="hero-ascii" style="margin-top:24px;text-align:left;font-size:9px;">
+   _____ _             _                    _
+  / ____| |           | |                  | |
+ | (___ | | __ _ _ __ | | _____ _   _  ___| | ___  _ __
+  \___ \| |/ _` | '_ \| |/ / _ \ | | |/ __| |/ _ \| '_ \
+  ____) | | (_| | | | |   <  __/ |_| | (__| | (_) | | | |
+ |_____/|_|\__,_|_| |_|_|\_\___|\__, |\___|_|\___/|_| |_|
+                                  __/ |
+                                 |___/
+        </pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p class="footer-text">
+      Built with <span class="accent">&#9670;</span> by Satuarb &middot; Kazakhstan &middot; 2025
+    </p>
+  </footer>
+
+  <!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
+  <script>
+    // ─── THREE.JS HERO SCENE ───
+    (function() {
+      const canvas = document.getElementById('three-canvas');
+      if (!canvas || typeof THREE === 'undefined') return;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      // Icosahedron with wireframe
+      const geometry = new THREE.IcosahedronGeometry(2.2, 1);
+      const wireframeMat = new THREE.MeshBasicMaterial({
+        color: 0x00ff88,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.15
+      });
+      const icosahedron = new THREE.Mesh(geometry, wireframeMat);
+      scene.add(icosahedron);
+
+      // Outer ring
+      const ringGeo = new THREE.TorusGeometry(3.2, 0.02, 16, 100);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.2 });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI / 2.5;
+      scene.add(ring);
+
+      // Inner particles
+      const particlesGeo = new THREE.BufferGeometry();
+      const particleCount = 200;
+      const positions = new Float32Array(particleCount * 3);
+      for (let i = 0; i < particleCount * 3; i++) {
+        positions[i] = (Math.random() - 0.5) * 12;
+      }
+      particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const particlesMat = new THREE.PointsMaterial({
+        color: 0x7b61ff,
+        size: 0.03,
+        transparent: true,
+        opacity: 0.6
+      });
+      const particles = new THREE.Points(particlesGeo, particlesMat);
+      scene.add(particles);
+
+      camera.position.z = 5;
+
+      let mouseX = 0, mouseY = 0;
+      document.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+        mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+      });
+
+      function animate() {
+        requestAnimationFrame(animate);
+        icosahedron.rotation.x += 0.003;
+        icosahedron.rotation.y += 0.005;
+        ring.rotation.z += 0.002;
+        particles.rotation.y += 0.001;
+        particles.rotation.x += 0.0005;
+        camera.position.x += (mouseX * 0.3 - camera.position.x) * 0.02;
+        camera.position.y += (-mouseY * 0.3 - camera.position.y) * 0.02;
+        camera.lookAt(scene.position);
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    })();
+
+    // ─── NAV SCROLL EFFECT ───
+    (function() {
+      const nav = document.getElementById('nav');
+      const navLinks = document.querySelectorAll('.nav-links a');
+      const sections = document.querySelectorAll('.section, .hero, .stats-section');
+
+      window.addEventListener('scroll', () => {
+        nav.classList.toggle('scrolled', window.scrollY > 50);
+
+        let current = '';
+        sections.forEach(section => {
+          const sectionTop = section.offsetTop - 200;
+          if (window.scrollY >= sectionTop) {
+            current = section.getAttribute('id');
+          }
+        });
+
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === '#' + current) {
+            link.classList.add('active');
+          }
+        });
+      });
+    })();
+
+    // ─── MOBILE NAV TOGGLE ───
+    (function() {
+      const toggle = document.getElementById('navToggle');
+      const links = document.getElementById('navLinks');
+      toggle.addEventListener('click', () => links.classList.toggle('open'));
+      links.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => links.classList.remove('open'));
+      });
+    })();
+
+    // ─── FADE-IN ON SCROLL ───
+    (function() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+      document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+    })();
+
+    // ─── COUNTER ANIMATION ───
+    (function() {
+      const counters = document.querySelectorAll('[data-count]');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const el = entry.target;
+            const target = parseInt(el.getAttribute('data-count'));
+            const suffix = el.getAttribute('data-suffix') || '';
+            const duration = 2000;
+            const start = performance.now();
+
+            function update(now) {
+              const elapsed = now - start;
+              const progress = Math.min(elapsed / duration, 1);
+              const eased = 1 - Math.pow(1 - progress, 3);
+              const current = Math.round(eased * target);
+              el.textContent = current + suffix;
+              if (progress < 1) requestAnimationFrame(update);
+            }
+            requestAnimationFrame(update);
+            observer.unobserve(el);
+          }
+        });
+      }, { threshold: 0.5 });
+
+      counters.forEach(c => observer.observe(c));
+    })();
+
+    // ─── SKILL BAR ANIMATION ───
+    (function() {
+      const bars = document.querySelectorAll('.skill-bar-fill');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.width = entry.target.getAttribute('data-width');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.5 });
+
+      bars.forEach(bar => observer.observe(bar));
+    })();
+
+    // ─── PROJECT FILTER ───
+    (function() {
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      const cards = document.querySelectorAll('.project-card');
+
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const filter = btn.getAttribute('data-filter');
+
+          cards.forEach(card => {
+            if (filter === 'all' || card.getAttribute('data-category') === filter) {
+              card.classList.remove('hidden');
+              card.style.animation = 'none';
+              card.offsetHeight;
+              card.style.animation = 'fadeInUp 0.5s ease forwards';
+            } else {
+              card.classList.add('hidden');
+            }
+          });
+        });
+      });
+    })();
+
+    // ─── FORM HANDLER (visual feedback only) ───
+    (function() {
+      const form = document.querySelector('.contact-form');
+      if (!form) return;
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const btn = form.querySelector('.form-submit');
+        btn.textContent = 'Message Sent!';
+        btn.style.background = 'linear-gradient(135deg, #00d4ff, #7b61ff)';
+        setTimeout(() => {
+          btn.textContent = 'Send Message';
+          btn.style.background = '';
+          form.reset();
+        }, 3000);
+      });
+    })();
+
+    // ─── SMOOTH SCROLL FOR NAV LINKS ───
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // ─── FADEINUP KEYFRAMES ───
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
