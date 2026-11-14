@@ -1,4 +1,4 @@
-name: Node JS CI
+name: CI
 
 on:
   push:
@@ -7,16 +7,41 @@ on:
     branches: [master]
 
 jobs:
-  build:
-    runs-on: windows-latest
+  check:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Check JS syntax
-        run: node --check script.js 2>&1 || echo "No script.js or syntax check skipped"
-      - name: Verify HTML
+      - name: Check entrypoint
+        run: test -f index.html
+      - name: Check local references
         run: |
-          if exist index.html (echo "HTML present") else (echo "No index.html found")
+          node -e '
+            const fs = require("fs");
+            const html = fs.readFileSync("index.html", "utf8");
+            const refs = [...html.matchAll(/(?:href|src)="([^"]+)"/g)].map(m => m[1])
+              .filter(u => !/^(https?:|mailto:|tel:|data:|#|\/\/)/.test(u));
+            let bad = 0;
+            for (const r of refs) {
+              if (!fs.existsSync(r)) { console.log("missing: " + r); bad++; }
+            }
+            if (bad) process.exit(1);
+            console.log("checked " + refs.length + " local references");
+          '
+      - name: Check tag balance
+        run: |
+          node -e '
+            const fs = require("fs");
+            const html = fs.readFileSync("index.html", "utf8");
+            for (const t of ["div", "section", "form", "ul"]) {
+              const open = (html.match(new RegExp("<" + t + "\\b", "g")) || []).length;
+              const close = (html.match(new RegExp("</" + t + ">", "g")) || []).length;
+              if (open !== close) {
+                console.log(t + ": " + open + " open vs " + close + " close");
+                process.exit(1);
+              }
+            }
+            console.log("tag balance ok");
+          '
